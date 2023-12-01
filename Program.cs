@@ -86,14 +86,17 @@ if (builder.Environment.IsStaging() || builder.Environment.IsProduction())
         .UseColouredConsoleLogProvider()
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
-        .UsePostgreSqlStorage(builder.Configuration.GetConnectionString("LocalDbContext")));
+        .UsePostgreSqlStorage(builder.Configuration.GetConnectionString("MyDbContext")));
 
     builder.Services.AddHangfireServer();
 }
 
 builder.Services.AddDbContext<MyDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("LocalDbContext"));
+    options.UseNpgsql(
+        !builder.Environment.IsDevelopment()
+            ? Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+            : builder.Configuration.GetConnectionString("LocalDbContext"));
 });
 builder.Services.AddSingleton<IMongoDbContext, MongoDbContext>();
 
